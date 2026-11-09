@@ -1,0 +1,313 @@
+data,tipo,categoria,subcategoria,valor,essencial
+2024-11-01,receita,Salário,Salário,5786.03,False
+2024-11-01,despesa,Moradia,Aluguel,1119.88,True
+2024-11-01,despesa,Moradia,Condomínio,274.15,True
+2024-11-01,despesa,Moradia,"Energia, água e internet",152.59,True
+2024-11-01,despesa,Alimentação,Mercado,788.72,True
+2024-11-01,despesa,Alimentação,Delivery e restaurantes,127.71,False
+2024-11-01,despesa,Transporte,Combustível e apps,375.47,True
+2024-11-01,despesa,Transporte,Manutenção,200.96,True
+2024-11-01,despesa,Lazer,Streaming,55.99,False
+2024-11-01,despesa,Lazer,Saídas,278.56,False
+2024-11-01,despesa,Lazer,Hobbies,98.37,False
+2024-11-01,despesa,Outros,Saúde,195.38,True
+2024-11-01,despesa,Outros,Compras,259.23,False
+2024-12-01,receita,Salário,Salário,5803.44,False
+2024-12-01,despesa,Moradia,Aluguel,1123.25,True
+2024-12-01,despesa,Moradia,Condomínio,287.14,True
+2024-12-01,despesa,Moradia,"Energia, água e internet",148.28,True
+2024-12-01,despesa,Alimentação,Mercado,710.22,True
+2024-12-01,despesa,Alimentação,Delivery e restaurantes,343.06,False
+2024-12-01,despesa,Transporte,Combustível e apps,400.7,True
+2024-12-01,despesa,Transporte,Manutenção,285.88,True
+2024-12-01,despesa,Lazer,Streaming,56.16,False
+2024-12-01,despesa,Lazer,Saídas,265.24,False
+2024-12-01,despesa,Lazer,Hobbies,108.97,False
+2024-12-01,despesa,Outros,Saúde,217.65,True
+2024-12-01,despesa,Outros,Compras,172.74,False
+2025-01-01,receita,Salário,Salário,5820.9,False
+2025-01-01,despesa,Moradia,Aluguel,1126.63,True
+2025-01-01,despesa,Moradia,Condomínio,279.67,True
+2025-01-01,despesa,Moradia,"Energia, água e internet",149.82,True
+2025-01-01,despesa,Alimentação,Mercado,767.55,True
+2025-01-01,despesa,Alimentação,Delivery e restaurantes,348.18,False
+2025-01-01,despesa,Transporte,Combustível e apps,499.76,True
+2025-01-01,despesa,Transporte,Manutenção,429.05,True
+2025-01-01,despesa,Lazer,Streaming,56.33,False
+2025-01-01,despesa,Lazer,Saídas,238.37,False
+2025-01-01,despesa,Lazer,Hobbies,101.32,False
+2025-01-01,despesa,Outros,Saúde,179.86,True
+2025-01-01,despesa,Outros,Compras,293.76,False
+2025-02-01,receita,Salário,Salário,5838.41,False
+2025-02-01,despesa,Moradia,Aluguel,1130.02,True
+2025-02-01,despesa,Moradia,Condomínio,277.76,True
+2025-02-01,despesa,Moradia,"Energia, água e internet",127.28,True
+2025-02-01,despesa,Alimentação,Mercado,782.75,True
+2025-02-01,despesa,Alimentação,Delivery e restaurantes,380.05,False
+2025-02-01,despesa,Transporte,Combustível e apps,509.2,True
+2025-02-01,despesa,Transporte,Manutenção,113.13,True
+2025-02-01,despesa,Lazer,Streaming,56.5,False
+2025-02-01,despesa,Lazer,Saídas,292.39,False
+2025-02-01,despesa,Lazer,Hobbies,163.85,False
+2025-02-01,despesa,Outros,Saúde,196.64,True
+2025-02-01,despesa,Outros,Compras,209.39,False
+2025-03-01,receita,Salário,Salário,5855.98,False
+2025-03-01,despesa,Moradia,Aluguel,1133.42,True
+2025-03-01,despesa,Moradia,Condomínio,283.74,True
+2025-03-01,despesa,Moradia,"Energia, água e internet",146.59,True
+2025-03-01,despesa,Alimentação,Mercado,784.23,True
+2025-03-01,despesa,Alimentação,Delivery e restaurantes,175.44,False
+2025-03-01,despesa,Transporte,Combustível e apps,449.61,True
+2025-03-01,despesa,Transporte,Manutenção,135.59,True
+2025-03-01,despesa,Lazer,Streaming,56.67,False
+2025-03-01,despesa,Lazer,Saídas,259.97,False
+2025-03-01,despesa,Lazer,Hobbies,241.49,False
+2025-03-01,despesa,Outros,Saúde,86.48,True
+2025-03-01,despesa,Outros,Compras,280.36,False
+2025-04-01,receita,Salário,Salário,5873.6,False
+2025-04-01,despesa,Moradia,Aluguel,1136.83,True
+2025-04-01,despesa,Moradia,Condomínio,282.3,True
+2025-04-01,despesa,Moradia,"Energia, água e internet",144.88,True
+2025-04-01,despesa,Alimentação,Mercado,784.54,True
+2025-04-01,despesa,Alimentação,Delivery e restaurantes,379.33,False
+2025-04-01,despesa,Transporte,Combustível e apps,530.05,True
+2025-04-01,despesa,Transporte,Manutenção,149.83,True
+2025-04-01,despesa,Lazer,Streaming,56.84,False
+2025-04-01,despesa,Lazer,Saídas,357.36,False
+2025-04-01,despesa,Lazer,Hobbies,139.98,False
+2025-04-01,despesa,Outros,Saúde,60.53,True
+2025-04-01,despesa,Outros,Compras,82.11,False
+2025-05-01,receita,Salário,Salário,5891.28,False
+2025-05-01,despesa,Moradia,Aluguel,1140.25,True
+2025-05-01,despesa,Moradia,Condomínio,287.9,True
+2025-05-01,despesa,Moradia,"Energia, água e internet",144.97,True
+2025-05-01,despesa,Alimentação,Mercado,791.66,True
+2025-05-01,despesa,Alimentação,Delivery e restaurantes,273.38,False
+2025-05-01,despesa,Transporte,Combustível e apps,486.4,True
+2025-05-01,despesa,Transporte,Manutenção,261.37,True
+2025-05-01,despesa,Lazer,Streaming,57.01,False
+2025-05-01,despesa,Lazer,Saídas,324.12,False
+2025-05-01,despesa,Lazer,Hobbies,111.78,False
+2025-05-01,despesa,Outros,Saúde,119.25,True
+2025-05-01,despesa,Outros,Compras,153.77,False
+2025-06-01,receita,Salário,Salário,5909.0,False
+2025-06-01,despesa,Moradia,Aluguel,1143.68,True
+2025-06-01,despesa,Moradia,Condomínio,288.7,True
+2025-06-01,despesa,Moradia,"Energia, água e internet",134.91,True
+2025-06-01,despesa,Alimentação,Mercado,763.02,True
+2025-06-01,despesa,Alimentação,Delivery e restaurantes,359.87,False
+2025-06-01,despesa,Transporte,Combustível e apps,508.45,True
+2025-06-01,despesa,Transporte,Manutenção,266.71,True
+2025-06-01,despesa,Lazer,Streaming,57.18,False
+2025-06-01,despesa,Lazer,Saídas,249.61,False
+2025-06-01,despesa,Lazer,Hobbies,147.63,False
+2025-06-01,despesa,Outros,Saúde,34.41,True
+2025-06-01,despesa,Outros,Compras,52.69,False
+2025-07-01,receita,Salário,Salário,5926.78,False
+2025-07-01,despesa,Moradia,Aluguel,1147.12,True
+2025-07-01,despesa,Moradia,Condomínio,281.06,True
+2025-07-01,despesa,Moradia,"Energia, água e internet",150.27,True
+2025-07-01,despesa,Alimentação,Mercado,723.2,True
+2025-07-01,despesa,Alimentação,Delivery e restaurantes,279.67,False
+2025-07-01,despesa,Transporte,Combustível e apps,571.11,True
+2025-07-01,despesa,Transporte,Manutenção,150.32,True
+2025-07-01,despesa,Lazer,Streaming,57.36,False
+2025-07-01,despesa,Lazer,Saídas,206.46,False
+2025-07-01,despesa,Lazer,Hobbies,140.38,False
+2025-07-01,despesa,Outros,Saúde,82.09,True
+2025-07-01,despesa,Outros,Compras,158.78,False
+2025-08-01,receita,Salário,Salário,5944.62,False
+2025-08-01,despesa,Moradia,Aluguel,1150.57,True
+2025-08-01,despesa,Moradia,Condomínio,277.71,True
+2025-08-01,despesa,Moradia,"Energia, água e internet",151.32,True
+2025-08-01,despesa,Alimentação,Mercado,777.99,True
+2025-08-01,despesa,Alimentação,Delivery e restaurantes,260.01,False
+2025-08-01,despesa,Transporte,Combustível e apps,375.42,True
+2025-08-01,despesa,Transporte,Manutenção,200.06,True
+2025-08-01,despesa,Lazer,Streaming,57.53,False
+2025-08-01,despesa,Lazer,Saídas,307.72,False
+2025-08-01,despesa,Lazer,Hobbies,154.75,False
+2025-08-01,despesa,Outros,Saúde,247.49,True
+2025-08-01,despesa,Outros,Compras,168.81,False
+2025-09-01,receita,Salário,Salário,5962.5,False
+2025-09-01,despesa,Moradia,Aluguel,1154.03,True
+2025-09-01,despesa,Moradia,Condomínio,289.54,True
+2025-09-01,despesa,Moradia,"Energia, água e internet",148.06,True
+2025-09-01,despesa,Alimentação,Mercado,832.1,True
+2025-09-01,despesa,Alimentação,Delivery e restaurantes,396.87,False
+2025-09-01,despesa,Transporte,Combustível e apps,506.59,True
+2025-09-01,despesa,Transporte,Manutenção,361.21,True
+2025-09-01,despesa,Lazer,Streaming,57.7,False
+2025-09-01,despesa,Lazer,Saídas,233.14,False
+2025-09-01,despesa,Lazer,Hobbies,96.84,False
+2025-09-01,despesa,Outros,Saúde,118.95,True
+2025-09-01,despesa,Outros,Compras,59.94,False
+2025-10-01,receita,Salário,Salário,5980.45,False
+2025-10-01,despesa,Moradia,Aluguel,1157.51,True
+2025-10-01,despesa,Moradia,Condomínio,288.09,True
+2025-10-01,despesa,Moradia,"Energia, água e internet",119.15,True
+2025-10-01,despesa,Alimentação,Mercado,724.65,True
+2025-10-01,despesa,Alimentação,Delivery e restaurantes,348.25,False
+2025-10-01,despesa,Transporte,Combustível e apps,542.93,True
+2025-10-01,despesa,Transporte,Manutenção,424.04,True
+2025-10-01,despesa,Lazer,Streaming,57.88,False
+2025-10-01,despesa,Lazer,Saídas,325.35,False
+2025-10-01,despesa,Lazer,Hobbies,93.25,False
+2025-10-01,despesa,Outros,Saúde,5.87,True
+2025-10-01,despesa,Outros,Compras,218.74,False
+2025-11-01,receita,Salário,Salário,5998.44,False
+2025-11-01,despesa,Moradia,Aluguel,1160.99,True
+2025-11-01,despesa,Moradia,Condomínio,287.84,True
+2025-11-01,despesa,Moradia,"Energia, água e internet",134.46,True
+2025-11-01,despesa,Alimentação,Mercado,767.45,True
+2025-11-01,despesa,Alimentação,Delivery e restaurantes,421.37,False
+2025-11-01,despesa,Transporte,Combustível e apps,495.14,True
+2025-11-01,despesa,Transporte,Manutenção,175.08,True
+2025-11-01,despesa,Lazer,Streaming,58.05,False
+2025-11-01,despesa,Lazer,Saídas,144.43,False
+2025-11-01,despesa,Lazer,Hobbies,124.69,False
+2025-11-01,despesa,Outros,Saúde,141.61,True
+2025-11-01,despesa,Outros,Compras,364.54,False
+2025-12-01,receita,Salário,Salário,6016.49,False
+2025-12-01,despesa,Moradia,Aluguel,1164.48,True
+2025-12-01,despesa,Moradia,Condomínio,296.84,True
+2025-12-01,despesa,Moradia,"Energia, água e internet",136.84,True
+2025-12-01,despesa,Alimentação,Mercado,721.13,True
+2025-12-01,despesa,Alimentação,Delivery e restaurantes,227.51,False
+2025-12-01,despesa,Transporte,Combustível e apps,432.42,True
+2025-12-01,despesa,Transporte,Manutenção,441.94,True
+2025-12-01,despesa,Lazer,Streaming,58.22,False
+2025-12-01,despesa,Lazer,Saídas,364.35,False
+2025-12-01,despesa,Lazer,Hobbies,99.19,False
+2025-12-01,despesa,Outros,Saúde,206.58,True
+2025-12-01,despesa,Outros,Compras,231.44,False
+2026-01-01,receita,Salário,Salário,6034.59,False
+2026-01-01,despesa,Moradia,Aluguel,1167.99,True
+2026-01-01,despesa,Moradia,Condomínio,291.76,True
+2026-01-01,despesa,Moradia,"Energia, água e internet",134.53,True
+2026-01-01,despesa,Alimentação,Mercado,799.5,True
+2026-01-01,despesa,Alimentação,Delivery e restaurantes,277.35,False
+2026-01-01,despesa,Transporte,Combustível e apps,397.19,True
+2026-01-01,despesa,Transporte,Manutenção,45.4,True
+2026-01-01,despesa,Lazer,Streaming,58.4,False
+2026-01-01,despesa,Lazer,Saídas,430.32,False
+2026-01-01,despesa,Lazer,Hobbies,165.7,False
+2026-01-01,despesa,Outros,Saúde,138.2,True
+2026-01-01,despesa,Outros,Compras,222.48,False
+2026-02-01,receita,Salário,Salário,6052.75,False
+2026-02-01,despesa,Moradia,Aluguel,1171.5,True
+2026-02-01,despesa,Moradia,Condomínio,294.16,True
+2026-02-01,despesa,Moradia,"Energia, água e internet",139.22,True
+2026-02-01,despesa,Alimentação,Mercado,832.84,True
+2026-02-01,despesa,Alimentação,Delivery e restaurantes,363.6,False
+2026-02-01,despesa,Transporte,Combustível e apps,600.57,True
+2026-02-01,despesa,Transporte,Manutenção,216.72,True
+2026-02-01,despesa,Lazer,Streaming,58.58,False
+2026-02-01,despesa,Lazer,Saídas,172.67,False
+2026-02-01,despesa,Lazer,Hobbies,259.35,False
+2026-02-01,despesa,Outros,Saúde,260.02,True
+2026-02-01,despesa,Outros,Compras,177.72,False
+2026-03-01,receita,Salário,Salário,6070.97,False
+2026-03-01,despesa,Moradia,Aluguel,1175.03,True
+2026-03-01,despesa,Moradia,Condomínio,302.34,True
+2026-03-01,despesa,Moradia,"Energia, água e internet",127.37,True
+2026-03-01,despesa,Alimentação,Mercado,741.3,True
+2026-03-01,despesa,Alimentação,Delivery e restaurantes,385.5,False
+2026-03-01,despesa,Transporte,Combustível e apps,460.61,True
+2026-03-01,despesa,Transporte,Manutenção,195.24,True
+2026-03-01,despesa,Lazer,Streaming,58.75,False
+2026-03-01,despesa,Lazer,Saídas,323.51,False
+2026-03-01,despesa,Lazer,Hobbies,244.87,False
+2026-03-01,despesa,Outros,Saúde,152.87,True
+2026-03-01,despesa,Outros,Compras,258.89,False
+2026-04-01,receita,Salário,Salário,6089.23,False
+2026-04-01,despesa,Moradia,Aluguel,1178.56,True
+2026-04-01,despesa,Moradia,Condomínio,294.35,True
+2026-04-01,despesa,Moradia,"Energia, água e internet",132.41,True
+2026-04-01,despesa,Alimentação,Mercado,728.25,True
+2026-04-01,despesa,Alimentação,Delivery e restaurantes,238.72,False
+2026-04-01,despesa,Transporte,Combustível e apps,466.46,True
+2026-04-01,despesa,Transporte,Manutenção,304.37,True
+2026-04-01,despesa,Lazer,Streaming,58.93,False
+2026-04-01,despesa,Lazer,Saídas,297.35,False
+2026-04-01,despesa,Lazer,Hobbies,126.71,False
+2026-04-01,despesa,Outros,Saúde,125.6,True
+2026-04-01,despesa,Outros,Compras,294.91,False
+2026-05-01,receita,Salário,Salário,6107.56,False
+2026-05-01,despesa,Moradia,Aluguel,1182.11,True
+2026-05-01,despesa,Moradia,Condomínio,303.43,True
+2026-05-01,despesa,Moradia,"Energia, água e internet",145.02,True
+2026-05-01,despesa,Alimentação,Mercado,755.16,True
+2026-05-01,despesa,Alimentação,Delivery e restaurantes,303.25,False
+2026-05-01,despesa,Transporte,Combustível e apps,510.46,True
+2026-05-01,despesa,Transporte,Manutenção,217.89,True
+2026-05-01,despesa,Lazer,Streaming,59.11,False
+2026-05-01,despesa,Lazer,Saídas,303.55,False
+2026-05-01,despesa,Lazer,Hobbies,172.0,False
+2026-05-01,despesa,Outros,Saúde,315.16,True
+2026-05-01,despesa,Outros,Compras,381.9,False
+2026-06-01,receita,Salário,Salário,6125.93,False
+2026-06-01,despesa,Moradia,Aluguel,1185.66,True
+2026-06-01,despesa,Moradia,Condomínio,294.71,True
+2026-06-01,despesa,Moradia,"Energia, água e internet",122.18,True
+2026-06-01,despesa,Alimentação,Mercado,762.43,True
+2026-06-01,despesa,Alimentação,Delivery e restaurantes,356.93,False
+2026-06-01,despesa,Transporte,Combustível e apps,583.39,True
+2026-06-01,despesa,Transporte,Manutenção,111.17,True
+2026-06-01,despesa,Lazer,Streaming,59.28,False
+2026-06-01,despesa,Lazer,Saídas,105.47,False
+2026-06-01,despesa,Lazer,Hobbies,147.8,False
+2026-06-01,despesa,Outros,Saúde,77.35,True
+2026-06-01,despesa,Outros,Compras,145.3,False
+2026-07-01,receita,Salário,Salário,6144.37,False
+2026-07-01,despesa,Moradia,Aluguel,1189.23,True
+2026-07-01,despesa,Moradia,Condomínio,296.75,True
+2026-07-01,despesa,Moradia,"Energia, água e internet",117.3,True
+2026-07-01,despesa,Alimentação,Mercado,723.04,True
+2026-07-01,despesa,Alimentação,Delivery e restaurantes,535.94,False
+2026-07-01,despesa,Transporte,Combustível e apps,399.82,True
+2026-07-01,despesa,Transporte,Manutenção,67.77,True
+2026-07-01,despesa,Lazer,Streaming,59.46,False
+2026-07-01,despesa,Lazer,Saídas,556.42,False
+2026-07-01,despesa,Lazer,Hobbies,84.26,False
+2026-07-01,despesa,Outros,Saúde,124.02,True
+2026-07-01,despesa,Outros,Compras,232.05,False
+2026-08-01,receita,Salário,Salário,6162.86,False
+2026-08-01,despesa,Moradia,Aluguel,1192.81,True
+2026-08-01,despesa,Moradia,Condomínio,292.32,True
+2026-08-01,despesa,Moradia,"Energia, água e internet",144.71,True
+2026-08-01,despesa,Alimentação,Mercado,832.3,True
+2026-08-01,despesa,Alimentação,Delivery e restaurantes,370.81,False
+2026-08-01,despesa,Transporte,Combustível e apps,468.96,True
+2026-08-01,despesa,Transporte,Manutenção,182.84,True
+2026-08-01,despesa,Lazer,Streaming,59.64,False
+2026-08-01,despesa,Lazer,Saídas,276.9,False
+2026-08-01,despesa,Lazer,Hobbies,142.09,False
+2026-08-01,despesa,Outros,Saúde,164.68,True
+2026-08-01,despesa,Outros,Compras,143.6,False
+2026-09-01,receita,Salário,Salário,6181.4,False
+2026-09-01,despesa,Moradia,Aluguel,1196.4,True
+2026-09-01,despesa,Moradia,Condomínio,305.16,True
+2026-09-01,despesa,Moradia,"Energia, água e internet",152.34,True
+2026-09-01,despesa,Alimentação,Mercado,814.43,True
+2026-09-01,despesa,Alimentação,Delivery e restaurantes,334.26,False
+2026-09-01,despesa,Transporte,Combustível e apps,498.51,True
+2026-09-01,despesa,Transporte,Manutenção,113.07,True
+2026-09-01,despesa,Lazer,Streaming,59.82,False
+2026-09-01,despesa,Lazer,Saídas,290.37,False
+2026-09-01,despesa,Lazer,Hobbies,293.08,False
+2026-09-01,despesa,Outros,Saúde,255.43,True
+2026-09-01,despesa,Outros,Compras,237.87,False
+2026-10-01,receita,Salário,Salário,6200.0,False
+2026-10-01,despesa,Moradia,Aluguel,1200.0,True
+2026-10-01,despesa,Moradia,Condomínio,300.0,True
+2026-10-01,despesa,Moradia,"Energia, água e internet",150.0,True
+2026-10-01,despesa,Alimentação,Mercado,800.0,True
+2026-10-01,despesa,Alimentação,Delivery e restaurantes,330.0,False
+2026-10-01,despesa,Transporte,Combustível e apps,500.0,True
+2026-10-01,despesa,Transporte,Manutenção,200.0,True
+2026-10-01,despesa,Lazer,Streaming,60.0,False
+2026-10-01,despesa,Lazer,Saídas,300.0,False
+2026-10-01,despesa,Lazer,Hobbies,160.0,False
+2026-10-01,despesa,Outros,Saúde,150.0,True
+2026-10-01,despesa,Outros,Compras,200.0,False
