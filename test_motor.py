@@ -95,3 +95,53 @@ def test_agrupamento_cobre_todas_subcategorias(df):
 def test_cortes_nunca_atingem_essenciais(df):
     g = motor.agrupar_despesas(df)
     assert not g.loc[g["subcategoria"].isin(["Aluguel", "Condomínio", "Mercado"]), "grupo"].isin(["variável", "estável"]).any()
+
+
+# ------------------------------------------------------------ novos: plano de corte e mês fechado
+def test_plano_de_corte_soma_o_necessario_e_respeita_teto(df):
+    g = motor.agrupar_despesas(df)
+    p = motor.plano_de_corte(g, 275)
+    assert p["alocado"] == pytest.approx(275, abs=0.01)
+    assert p["faltou"] == 0
+    assert (p["itens"]["pct_item"] <= motor.CORTE_MAX_ITEM + 1e-9).all()
+
+
+def test_plano_de_corte_so_atinge_nao_essenciais_e_variaveis_primeiro(df):
+    g = motor.agrupar_despesas(df)
+    p = motor.plano_de_corte(g, 275)
+    essenciais = set(g.loc[g["essencial"], "subcategoria"])
+    assert not set(p["itens"]["subcategoria"]) & essenciais
+    assert set(p["itens"]["grupo"]) == {"variável"}  # 275 cabe no grupo variável
+
+
+def test_plano_de_corte_transborda_para_estaveis_e_sinaliza_falta(df):
+    g = motor.agrupar_despesas(df)
+    flex = motor.total_flexivel(g)
+    cap_variavel = motor.CORTE_MAX_ITEM * g.loc[g["grupo"] == "variável", "media"].sum()
+    p = motor.plano_de_corte(g, cap_variavel + 20)  # o grupo variável não basta
+    assert "estável" in set(p["itens"]["grupo"])
+    p2 = motor.plano_de_corte(g, flex)  # 100% do flexível excede o teto de 50% por item
+    assert p2["faltou"] > 0
+    assert p2["alocado"] == pytest.approx(flex * motor.CORTE_MAX_ITEM, rel=1e-6)
+
+
+def test_ate_mes_fechado_ignora_mes_so_com_despesa(df):
+    import pandas as pd
+    extra = pd.DataFrame([(pd.Timestamp("2026-11-13"), "despesa", "Lazer", "Saídas", 80.0, False)], columns=df.columns)
+    com_extra = pd.concat([df, extra], ignore_index=True)
+    assert motor.sumarizar(motor.ate_mes_fechado(com_extra))["mes"] == "2026-10"
+    assert len(motor.ate_mes_fechado(com_extra)) == len(df)
+
+
+def test_agrupamento_com_poucos_itens_nao_quebra(df):
+    so_um = df[(df["tipo"] == "receita") | df["essencial"] | (df["subcategoria"] == "Saídas")]
+    g = motor.agrupar_despesas(so_um)
+    assert g.loc[g["subcategoria"] == "Saídas", "grupo"].iloc[0] == "variável"
+    sem_disc = df[(df["tipo"] == "receita") | df["essencial"]]
+    assert set(motor.agrupar_despesas(sem_disc)["grupo"]) == {"essencial"}
+
+
+def test_textos_em_formato_brasileiro(cenario):
+    alts = motor.gerar_alternativas(cenario)
+    txt = " ".join(a.descricao + a.motivo for a in alts)
+    assert "R$ 1.475,00" in txt and "0,80% a.m." in txt and "1,475.00" not in txt

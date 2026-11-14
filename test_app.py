@@ -21,6 +21,6 @@ def test_login_invalido():
 def test_telas_sem_excecao():
     at = _logado()
     assert at.session_state["logado"]
-    for pagina in ["Visão geral", "Lançamentos", "Simulação", "Relatórios"]:
+    for pagina in ["Visão geral", "Lançamentos", "Meus dados", "Simulação", "Relatórios"]:
         at.sidebar.radio[0].set_value(pagina).run()
         assert not at.exception, f"{pagina}: {at.exception}"

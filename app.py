@@ -9,12 +9,13 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
+import dados
 import motor
+import referencias
 from gerar_dados import ESSENCIAIS, gerar
 
 CSV = Path(__file__).parent / "data" / "lancamentos.csv"
 USUARIO, SENHA = "demo@finplan.app", "demo123"
-SALDO_ATUAL = 12480.0
 
 AREIA, AREIA_ESC, TINTA, MUDO = "#F5EEE1", "#EBE0CB", "#2E2B24", "#857C68"
 OLIVA, TERRA, OCRE, LINHA = "#5C6B3B", "#C0603A", "#D9A441", "#D8CCB3"
@@ -79,18 +80,18 @@ def carregar() -> pd.DataFrame:
     if not CSV.exists():
         CSV.parent.mkdir(exist_ok=True)
         gerar().to_csv(CSV, index=False)
-    return pd.read_csv(CSV, parse_dates=["data"])
+    df = pd.read_csv(CSV, parse_dates=["data"])
+    if "essencial" not in df.columns:
+        df["essencial"] = df["subcategoria"].isin(ESSENCIAIS)
+    return df
 
 
 def estado():
     ss = st.session_state
     ss.setdefault("logado", False)
     ss.setdefault("df", carregar())
-    ss.setdefault("metas", [
-        {"nome": "Reserva de emergência", "valor": 12000.0, "guardado": 8160.0, "prazo": 6, "aporte": 0.0},
-        {"nome": "Viagem", "valor": 24000.0, "guardado": 6300.0, "prazo": 12, "aporte": 1200.0},
-        {"nome": "Notebook novo", "valor": 5000.0, "guardado": 4250.0, "prazo": 3, "aporte": 0.0},
-    ])
+    ss.setdefault("metas", dados.carregar_metas())
+    ss.setdefault("perfil", dados.carregar_perfil())
     ss.setdefault("taxas", {"poupança": 0.5, "renda fixa": 0.8})  # % a.m., ilustrativas
     ss.setdefault("simulacoes", [])
 
@@ -124,8 +125,12 @@ def tela_login():
 
 
 # -------------------------------------------------------------- dados derivados
+def saldo_hoje() -> float:
+    return dados.saldo_atual(st.session_state.df, st.session_state.perfil)
+
+
 def contexto():
-    df = st.session_state.df
+    df = motor.ate_mes_fechado(st.session_state.df)
     resumo = motor.sumarizar(df)
     grupos = motor.agrupar_despesas(df)
     return df, resumo, grupos, motor.total_flexivel(grupos)
@@ -135,9 +140,9 @@ def contexto():
 def pagina_geral():
     df, r, grupos, flex = contexto()
     st.markdown("# Visão geral")
-    st.caption(f"Referência: {rotulo(pd.Period(r['mes']))}")
+    st.caption(f"Referência: {rotulo(pd.Period(r['mes']))} (último mês com receita registrada)")
     c = st.columns(4)
-    cards = [("Saldo atual", brl(SALDO_ATUAL), "todas as contas"),
+    cards = [("Saldo atual", brl(saldo_hoje()), "saldo informado + lançamentos"),
              ("Entrou no mês", brl(r["receitas"]), ""),
              ("Saiu no mês", brl(r["despesas"]), ""),
              ("Taxa de poupança", pct(r["taxa_poupanca"]), "da renda que sobra")]
@@ -173,9 +178,10 @@ def pagina_geral():
                 ap = st.number_input("Aporte mensal atual (R$)", min_value=0.0, value=0.0, step=50.0)
                 if st.form_submit_button("Salvar meta") and n:
                     st.session_state.metas.append({"nome": n, "valor": v, "guardado": g, "prazo": int(p), "aporte": ap})
+                    dados.salvar_metas(st.session_state.metas)
                     st.rerun()
     proj = motor.projetar_sobra(df, 6)
-    futuro = SALDO_ATUAL + float(proj["previsao"].sum())
+    futuro = saldo_hoje() + float(proj["previsao"].sum())
     st.markdown(f"""<div class="card" style="background:{OLIVA};color:#FBF7EE;margin-top:.5rem">
     <div style="opacity:.85">Saldo estimado daqui a 6 meses</div><div class="big" style="color:#FBF7EE">{brl(futuro)}</div>
     <div style="opacity:.9;color:#FBF7EE;font-size:.82rem">Projeção pela tendência da sua sobra mensal (regressão linear, R² = {proj['r2']:.2f}).
@@ -187,6 +193,8 @@ def pagina_lancamentos():
     df = st.session_state.df
     st.markdown("# Lançamentos")
     st.caption("Registre o que entrou e o que saiu. Tudo que aparece nas outras telas é calculado a partir daqui.")
+    if (msg := st.session_state.pop("aviso", None)):
+        st.success(msg)
     subs = (df[df["tipo"] == "despesa"][["categoria", "subcategoria"]].drop_duplicates()
             .sort_values(["categoria", "subcategoria"]))
     with st.form("novo_lanc", clear_on_submit=True):
@@ -196,16 +204,29 @@ def pagina_lancamentos():
         opcoes = [f"{a} › {b}" for a, b in zip(subs["categoria"], subs["subcategoria"])]
         cat = c[2].selectbox("Categoria (só para despesas)", opcoes)
         valor = c[3].number_input("Valor (R$)", min_value=0.01, value=50.0, step=10.0)
+        n = st.columns([2, 2, 1])
+        nova_cat = n[0].text_input("Nova categoria (opcional)", placeholder="ex.: Educação")
+        nova_sub = n[1].text_input("Nova subcategoria (opcional, substitui a seleção acima)", placeholder="ex.: Curso de inglês")
+        nova_ess = n[2].checkbox("É essencial?")
         if st.form_submit_button("Registrar"):
             if tipo == "receita":
                 linha = (pd.Timestamp(data), "receita", "Salário", "Salário", valor, False)
             else:
-                ct, sb = cat.split(" › ")
-                linha = (pd.Timestamp(data), "despesa", ct, sb, valor, sb in ESSENCIAIS)
+                if nova_sub.strip():
+                    ct, sb, ess = (nova_cat.strip() or "Outros"), nova_sub.strip(), nova_ess
+                else:
+                    ct, sb = cat.split(" › ")
+                    ess_map = df[df["tipo"] == "despesa"].groupby("subcategoria")["essencial"].first()
+                    ess = bool(ess_map.get(sb, sb in ESSENCIAIS))
+                linha = (pd.Timestamp(data), "despesa", ct, sb, valor, ess)
             novo = pd.concat([df, pd.DataFrame([linha], columns=df.columns)], ignore_index=True)
             novo.to_csv(CSV, index=False)
             st.session_state.df = novo
-            st.success("Lançamento registrado.")
+            aviso = "Lançamento registrado."
+            if pd.Timestamp(data).to_period("M") > motor.ate_mes_fechado(novo)["data"].max().to_period("M"):
+                aviso += (" Esse mês ainda não tem receita registrada, então ele só entra nos cálculos "
+                          "(sobra, taxa de poupança, gráficos) depois que você lançar a receita dele.")
+            st.session_state.aviso = aviso
             st.rerun()
     st.markdown("### Últimos lançamentos")
     ver = df.sort_values("data", ascending=False).head(25).copy()
@@ -214,8 +235,83 @@ def pagina_lancamentos():
     st.dataframe(ver[["data", "tipo", "categoria", "subcategoria", "valor"]], hide_index=True, width="stretch")
     if st.button("Restaurar dados de demonstração"):
         gerar().to_csv(CSV, index=False)
+        dados.restaurar()
         st.session_state.df = carregar()
+        st.session_state.perfil = dados.carregar_perfil()
+        st.session_state.metas = dados.carregar_metas()
         st.rerun()
+
+
+# ------------------------------------------------------------------- meus dados
+def pagina_dados():
+    ss = st.session_state
+    st.markdown("# Meus dados")
+    st.caption("Aqui você informa o ponto de partida: saldo, metas e, se quiser, seus próprios lançamentos. "
+               "O dia a dia (o que entra e o que sai) é registrado na tela Lançamentos.")
+    if (msg := ss.pop("aviso_dados", None)):
+        st.success(msg)
+
+    st.markdown("### Saldo atual")
+    perfil, calc = ss.perfil, saldo_hoje()
+    desde = pd.Timestamp(perfil["data_base"]).strftime("%d/%m/%Y")
+    st.markdown(f'<div class="card"><div class="lbl">Saldo calculado hoje</div><div class="big">{brl(calc)}</div>'
+                f'<div class="lbl">saldo informado de {brl(perfil["saldo_base"])} em {desde}, mais as receitas e menos as '
+                f'despesas lançadas depois dessa data</div></div>', unsafe_allow_html=True)
+    with st.form("saldo"):
+        c = st.columns(2)
+        novo = c[0].number_input("Meu saldo é (R$)", value=float(calc), step=100.0, format="%.2f")
+        quando = c[1].date_input("Nessa data (fim do dia)", value=date.today(), format="DD/MM/YYYY")
+        if st.form_submit_button("Atualizar saldo"):
+            ss.perfil = {"saldo_base": float(novo), "data_base": quando.isoformat()}
+            dados.salvar_perfil(ss.perfil)
+            ss.aviso_dados = "Saldo atualizado."
+            st.rerun()
+
+    st.markdown("### Metas")
+    st.caption("Edite os valores, adicione linhas ou apague metas. 'Já guardado' é o que você tem hoje para a meta; "
+               "'Aporte mensal' é quanto pretende guardar por mês.")
+    nomes = {"nome": "Meta", "valor": "Valor desejado (R$)", "guardado": "Já guardado (R$)",
+             "prazo": "Prazo (meses)", "aporte": "Aporte mensal (R$)"}
+    tabela = pd.DataFrame(ss.metas)[list(nomes)].rename(columns=nomes)
+    editado = st.data_editor(tabela, num_rows="dynamic", hide_index=True, width="stretch", key="editor_metas",
+                             column_config={nomes["valor"]: st.column_config.NumberColumn(format="%.2f", min_value=0.0),
+                                            nomes["guardado"]: st.column_config.NumberColumn(format="%.2f", min_value=0.0),
+                                            nomes["aporte"]: st.column_config.NumberColumn(format="%.2f", min_value=0.0),
+                                            nomes["prazo"]: st.column_config.NumberColumn(format="%d", min_value=1)})
+    if st.button("Salvar metas"):
+        validas, erros = dados.validar_metas(editado.rename(columns={v: k for k, v in nomes.items()}).to_dict("records"))
+        if erros:
+            st.error("\n\n".join(erros))
+        else:
+            ss.metas = validas
+            dados.salvar_metas(validas)
+            ss.aviso_dados = "Metas salvas."
+            st.rerun()
+
+    st.markdown("### Importar lançamentos (CSV)")
+    st.caption("Para trazer seus dados de uma planilha. Colunas obrigatórias: data, tipo (receita ou despesa), "
+               "categoria, subcategoria e valor. Depois de importar, atualize o saldo acima.")
+    st.download_button("Baixar modelo de CSV", dados.MODELO_CSV.encode("utf-8"), "modelo_lancamentos.csv", "text/csv")
+    arq = st.file_uploader("Arquivo CSV", type=["csv"])
+    modo = st.radio("O que fazer com os lançamentos atuais?", ["Adicionar aos existentes", "Substituir todos"], horizontal=True)
+    if arq is not None:
+        try:
+            bruto = pd.read_csv(arq, sep=None, engine="python", dtype=str)
+        except Exception:
+            st.error("Não consegui ler o arquivo. Confira se é um CSV com cabeçalho.")
+        else:
+            novos, erros = dados.validar_importacao(bruto, ESSENCIAIS)
+            if erros:
+                st.error("\n\n".join(erros))
+            else:
+                st.success(f"{len(novos)} lançamentos válidos, de {novos['data'].min():%d/%m/%Y} a {novos['data'].max():%d/%m/%Y}.")
+                if st.button("Importar"):
+                    base = ss.df if modo.startswith("Adicionar") else ss.df.iloc[0:0]
+                    final = pd.concat([base, novos], ignore_index=True)
+                    final.to_csv(CSV, index=False)
+                    ss.df = final
+                    ss.aviso_dados = f"{len(novos)} lançamentos importados."
+                    st.rerun()
 
 
 # -------------------------------------------------------------------- simulação
@@ -233,10 +329,10 @@ def pagina_simulacao():
         nomes = [m["nome"] for m in ss.metas]
         meta = ss.metas[nomes.index(st.selectbox("Meta", nomes, index=min(1, len(nomes) - 1)))]
         k = meta["nome"]
-        valor = st.number_input("Valor desejado (R$)", min_value=1.0, value=meta["valor"], step=500.0, key=f"v{k}")
-        guardado = st.number_input("Já guardado (R$)", min_value=0.0, value=meta["guardado"], step=100.0, key=f"g{k}")
-        prazo = st.number_input("Prazo (meses)", min_value=1, value=int(meta["prazo"]), key=f"p{k}")
-        aporte = st.number_input("Aporte mensal atual (R$)", min_value=0.0, value=meta["aporte"], step=50.0, key=f"a{k}")
+        valor = st.number_input("Valor desejado (R$)", min_value=1.0, value=meta["valor"], step=500.0, key=f"v{k}-{meta['valor']}")
+        guardado = st.number_input("Já guardado (R$)", min_value=0.0, value=meta["guardado"], step=100.0, key=f"g{k}-{meta['guardado']}")
+        prazo = st.number_input("Prazo (meses)", min_value=1, value=int(meta["prazo"]), key=f"p{k}-{meta['prazo']}")
+        aporte = st.number_input("Aporte mensal atual (R$)", min_value=0.0, value=meta["aporte"], step=50.0, key=f"a{k}-{meta['aporte']}")
         st.markdown("**E se eu mudasse...**")
         aumento = st.slider("Aumentar o aporte em (R$)", 0, 1500, 0, 25, key=f"au{k}")
         corte = st.slider("Reduzir despesas flexíveis em (%)", 0, 40, 0, key=f"co{k}")
@@ -265,8 +361,9 @@ def pagina_simulacao():
         b.markdown(f'<div class="card" style="border-color:{OLIVA}"><div class="lbl">Se eu mudasse</div><div class="big">{brl(saldo_alt)}</div>'
                    f'<div class="lbl">aporte de {brl(aporte_alt)}, {pct(cob_alt, 0)} da meta</div>{barra(cob_alt, OLIVA)}'
                    f'<div class="{classe(ver_alt)}">Meta {ver_alt}</div></div>', unsafe_allow_html=True)
-        if aporte_alt > r["sobra"]:
-            st.warning(f"Esse aporte ({brl(aporte_alt)}) passa da sua sobra mensal ({brl(r['sobra'])}).")
+        if aporte + aumento > r["sobra"]:
+            st.warning(f"Aporte atual mais aumento ({brl(aporte + aumento)}) passa da sua sobra mensal ({brl(r['sobra'])}). "
+                       "O corte de despesas fica fora dessa conta: ele libera o mesmo valor que soma ao aporte.")
         n = int(prazo)
         meses = list(range(n + 1))
         linhas = pd.DataFrame({"mês": meses,
@@ -300,12 +397,39 @@ def pagina_simulacao():
                         f'<span class="nota">esforço extra: {pct(x.esforco, 1)} da renda · atraso: {x.atraso} meses · '
                         f'<span class="{cor}">{"cabe" if x.viavel else "não cabe"}</span> — {x.motivo}</span></div>',
                         unsafe_allow_html=True)
-    if flex:
-        sug = grupos[(grupos["grupo"] == "variável")].sort_values("media", ascending=False)
-        if len(sug):
-            itens = ", ".join(f"{s} ({brl(m)})" for s, m in zip(sug["subcategoria"], sug["media"]))
-            st.markdown(f'<div class="nota" style="margin-top:.6rem">Se for cortar, comece pelo que mais varia mês a mês: {itens}.</div>',
-                        unsafe_allow_html=True)
+    falta_corte = next((a.detalhe["valor"] for a in rec["alternativas"] if a.tipo == "despesas"), 0.0)
+    valor_corte = corte / 100 * flex if corte > 0 else (falta_corte if atual["veredito"] == "inviável" else 0.0)
+    if flex and valor_corte > 0:
+        plano = motor.plano_de_corte(grupos, valor_corte)
+        t = plano["itens"]
+        origem = "para o corte que você simulou" if corte > 0 else "para fechar a meta no prazo"
+        st.markdown("## Se a escolha for gastar menos: onde e quanto")
+        st.markdown(f"Para liberar **{brl(valor_corte)} por mês** {origem}, o FinPlan sugere dividir o corte entre "
+                    "as despesas não essenciais, começando pelas que mais variam de um mês para o outro:")
+        st.dataframe(pd.DataFrame({"Item": t["subcategoria"], "Grupo": t["grupo"], "Média mensal": t["media"].map(brl),
+                                   "Cortar": t["corte"].map(brl), "% do item": t["pct_item"].map(lambda x: pct(x, 0)),
+                                   "Fica em": t["novo"].map(brl)}), hide_index=True, width="stretch")
+        if plano["faltou"] > 0.005:
+            st.warning(f"Mesmo cortando até {pct(motor.CORTE_MAX_ITEM, 0)} de cada item não essencial, faltam "
+                       f"{brl(plano['faltou'])} por mês. Combine o corte com outra alternativa.")
+        st.markdown(
+            f"- **Por que só despesas não essenciais?** O Guia CVM (2014, passo 2) orienta separar despesas essenciais e não "
+            f"essenciais e buscar economia nas não essenciais. Warren e Tyagi (2005) distinguem necessidades, que não podem ser "
+            f"adiadas, de desejos, que são gastos não essenciais.\n"
+            f"- **Por que os que mais variam primeiro?** É um critério do FinPlan, não da literatura: o agrupamento (K-means) "
+            f"separa os itens pela média e pela variação mensal, e o que já oscila de um mês para o outro tende a ser mais fácil de ajustar.\n"
+            f"- **Como a divisão é feita:** o corte é repartido na proporção da média de cada item, e nenhum item perde mais de "
+            f"{pct(motor.CORTE_MAX_ITEM, 0)} da sua média (premissa do modelo, para o plano ser realista). Se o grupo variável não "
+            f"bastar, o restante vem dos estáveis.\n"
+            f"- **Como colocar em prática:** defina um teto mensal para cada item da tabela. Thaler e Benartzi (2004) mostram que "
+            f"se comprometer antecipadamente ajuda a poupar mais; aqui o argumento vale por analogia.")
+    elif flex and atual["veredito"] != "inviável":
+        st.caption("A meta já é viável com o aporte atual, então não há corte de despesas a sugerir.")
+    with st.expander("Referências das recomendações"):
+        for ref in referencias.REFERENCIAS:
+            st.markdown(f"- {ref}")
+        st.caption("Os resumos acima descrevem o que cada fonte afirma; a aplicação ao FinPlan é uma escolha de modelagem. "
+                   "O FinPlan é um protótipo acadêmico e não substitui orientação financeira profissional.")
     if st.button("Salvar esta simulação"):
         ss.simulacoes.append({"Meta": k, "Cenário": f"aporte {brl(aporte_alt)}, corte {corte}%, {aplic}",
                               "Cobertura": pct(cob_alt, 0), "Resultado": ver_alt})
@@ -319,7 +443,7 @@ def pagina_relatorios():
     per = st.selectbox("Período", [3, 6, 12, 24], index=1, format_func=lambda n: f"Últimos {n} meses")
     s = motor.serie_mensal(df).tail(per)
     s["taxa"] = s["sobra"] / s["receita"]
-    s["saldo"] = SALDO_ATUAL - s["sobra"][::-1].cumsum()[::-1].shift(-1).fillna(0)
+    s["saldo"] = saldo_hoje() - s["sobra"][::-1].cumsum()[::-1].shift(-1).fillna(0)
     s["rotulo"] = [rotulo(p) for p in s.index]
     a, b = st.columns(2, gap="large")
     with a:
@@ -378,10 +502,10 @@ if not st.session_state.logado:
 else:
     with st.sidebar:
         st.markdown('<div class="serif" style="font-size:1.6rem;color:#C0603A">FinPlan</div>', unsafe_allow_html=True)
-        pagina = st.radio("Menu", ["Visão geral", "Lançamentos", "Simulação", "Relatórios"], label_visibility="collapsed")
+        pagina = st.radio("Menu", ["Visão geral", "Lançamentos", "Meus dados", "Simulação", "Relatórios"], label_visibility="collapsed")
         st.write("")
         if st.button("Sair"):
             st.session_state.logado = False
             st.rerun()
-    {"Visão geral": pagina_geral, "Lançamentos": pagina_lancamentos,
+    {"Visão geral": pagina_geral, "Lançamentos": pagina_lancamentos, "Meus dados": pagina_dados,
      "Simulação": pagina_simulacao, "Relatórios": pagina_relatorios}[pagina]()

@@ -18,9 +18,31 @@ LIMIAR_VIAVEL = 1.00  # cobertura >= 100% -> viável no limite
 CORTE_MAXIMO = 0.30  # máximo de corte aceito no grupo flexível
 PESOS_PADRAO = (0.7, 0.3)  # (esforço, atraso)
 PESO_CORTE = 2.0  # cortar consumo pesa mais que usar a folga ociosa
+CORTE_MAX_ITEM = 0.50  # corte máximo sugerido em cada item individual (premissa do modelo)
+
+
+def _brl(v: float) -> str:
+    return "R$ " + f"{v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _pct(v: float, casas: int = 1) -> str:
+    return f"{v * 100:.{casas}f}".replace(".", ",") + "%"
 
 
 # ---------------------------------------------------------------- sumarização
+def ate_mes_fechado(df: pd.DataFrame) -> pd.DataFrame:
+    """Mantém só os meses até o último que já tem receita lançada.
+
+    Um mês em andamento (com poucas despesas e sem receita) distorceria a sobra e a taxa de
+    poupança; ele só entra nas análises depois que sua receita é registrada.
+    """
+    meses = pd.to_datetime(df["data"]).dt.to_period("M")
+    com_receita = meses[df["tipo"] == "receita"]
+    if com_receita.empty:
+        return df
+    return df[meses <= com_receita.max()]
+
+
 def sumarizar(df: pd.DataFrame, aporte_atual: float = 0.0) -> dict:
     """Diagnóstico do último mês: receitas, despesas, sobra e taxa de poupança."""
     df = df.copy()
@@ -89,21 +111,60 @@ def agrupar_despesas(df: pd.DataFrame, seed: int = 42) -> pd.DataFrame:
     ess = d.groupby(["categoria", "subcategoria"])["essencial"].first()
     m = d.pivot_table(index="mes", columns=["categoria", "subcategoria"],
                       values="valor", aggfunc="sum").fillna(0)
-    stats = pd.DataFrame({"media": m.mean(), "cv": m.std() / m.mean()}).reset_index()
+    stats = pd.DataFrame({"media": m.mean(), "cv": (m.std() / m.mean()).fillna(0)}).reset_index()
     stats["essencial"] = [bool(ess[(c, s)]) for c, s in zip(stats["categoria"], stats["subcategoria"])]
     stats["grupo"] = "essencial"
     disc = stats[~stats["essencial"]]
-    z = (disc[["media", "cv"]] - disc[["media", "cv"]].mean()) / disc[["media", "cv"]].std()
-    cl = KMeans(n_clusters=2, n_init=10, random_state=seed).fit_predict(z)
-    cv_medio = disc.groupby(cl)["cv"].mean()
-    nome = {cv_medio.idxmax(): "variável", cv_medio.idxmin(): "estável"}
-    stats.loc[disc.index, "grupo"] = [nome[c] for c in cl]
+    if len(disc) == 1:
+        stats.loc[disc.index, "grupo"] = "variável"
+    elif len(disc) >= 2:
+        x = disc[["media", "cv"]]
+        z = ((x - x.mean()) / x.std().replace(0, 1)).fillna(0)
+        cl = KMeans(n_clusters=2, n_init=10, random_state=seed).fit_predict(z)
+        cv_medio = disc.groupby(cl)["cv"].mean()
+        if len(cv_medio) == 2:
+            nome = {cv_medio.idxmax(): "variável", cv_medio.idxmin(): "estável"}
+        else:  # todos os itens caíram no mesmo cluster (dados quase idênticos)
+            nome = {cv_medio.index[0]: "variável"}
+        stats.loc[disc.index, "grupo"] = [nome[c] for c in cl]
     return stats
 
 
 def total_flexivel(grupos: pd.DataFrame) -> float:
     """Soma mensal das despesas discricionárias (onde cortes são permitidos)."""
     return float(grupos.loc[~grupos["essencial"], "media"].sum())
+
+
+def plano_de_corte(grupos: pd.DataFrame, valor: float, teto_item: float = CORTE_MAX_ITEM) -> dict:
+    """Distribui o corte necessário (R$/mês) entre as despesas não essenciais.
+
+    Ordem: itens do grupo 'variável' primeiro; se não bastar, os 'estáveis'. Dentro de cada grupo
+    o corte é proporcional à média mensal do item, limitado a `teto_item` dessa média.
+    """
+    disc = grupos[~grupos["essencial"]].copy()
+    disc["corte"] = 0.0
+    restante = max(0.0, float(valor))
+    for g in ("variável", "estável"):
+        idx = disc.index[disc["grupo"] == g]
+        for _ in range(50):  # cada volta enche ao menos um item até o teto, ou zera o restante
+            if restante <= 0.005 or not len(idx):
+                break
+            cap = teto_item * disc.loc[idx, "media"] - disc.loc[idx, "corte"]
+            abertos = cap.index[cap > 0.005]
+            if not len(abertos):
+                break
+            pesos = disc.loc[abertos, "media"]
+            parte = (restante * pesos / pesos.sum()).clip(upper=cap.loc[abertos])
+            disc.loc[abertos, "corte"] += parte
+            restante -= float(parte.sum())
+    disc["pct_item"] = disc["corte"] / disc["media"]
+    disc["novo"] = disc["media"] - disc["corte"]
+    itens = disc[disc["corte"] > 0.005].sort_values("corte", ascending=False)
+    return {
+        "itens": itens[["subcategoria", "grupo", "media", "corte", "pct_item", "novo"]],
+        "alocado": float(disc["corte"].sum()),
+        "faltou": float(max(0.0, restante)),
+    }
 
 
 # ------------------------------------------------------- modelo de decisão
@@ -173,9 +234,9 @@ def gerar_alternativas(c: Cenario, pesos=PESOS_PADRAO) -> list[Alternativa]:
     extra = ap - c.aporte_atual
     ok = ap <= c.sobra
     alts.append(Alternativa(
-        "aporte", f"Aumentar o aporte para R$ {ap:,.2f}/mês", ap, c.prazo,
+        "aporte", f"Aumentar o aporte para {_brl(ap)}/mês", ap, c.prazo,
         max(0.0, extra) / c.receitas, 0, ok,
-        f"cabe na folga de R$ {folga:,.2f}" if ok else "excede a sobra mensal",
+        f"cabe na folga de {_brl(folga)}" if ok else "excede a sobra mensal",
         detalhe={"extra": extra}))
 
     # 2) reduzir despesas flexíveis para liberar o valor faltante
@@ -183,9 +244,9 @@ def gerar_alternativas(c: Cenario, pesos=PESOS_PADRAO) -> list[Alternativa]:
     pct = falta / c.flexivel_total if c.flexivel_total else math.inf
     ok = pct <= CORTE_MAXIMO
     alts.append(Alternativa(
-        "despesas", f"Cortar {pct:.1%} das despesas flexíveis (R$ {falta:,.2f}/mês)",
+        "despesas", f"Cortar {_pct(pct)} das despesas flexíveis ({_brl(falta)}/mês)",
         ap, c.prazo, PESO_CORTE * falta / c.receitas, 0, ok,
-        "dentro do corte máximo" if ok else f"acima do corte máximo de {CORTE_MAXIMO:.0%}",
+        "dentro do corte máximo" if ok else f"acima do corte máximo de {_pct(CORTE_MAXIMO, 0)}",
         detalhe={"corte_pct": pct, "valor": falta}))
 
     # 3) estender prazo mantendo o aporte atual
@@ -201,7 +262,7 @@ def gerar_alternativas(c: Cenario, pesos=PESOS_PADRAO) -> list[Alternativa]:
         ap_r = aporte_necessario(c.meta, c.guardado, c.prazo, taxa)
         ok = ap_r <= c.sobra
         alts.append(Alternativa(
-            "aplicação", f"Aplicar em {nome} ({taxa:.2%} a.m.): aporte de R$ {ap_r:,.2f}/mês",
+            "aplicação", f"Aplicar em {nome} ({_pct(taxa, 2)} a.m.): aporte de {_brl(ap_r)}/mês",
             ap_r, c.prazo, max(0.0, ap_r - c.aporte_atual) / c.receitas, 0, ok,
             "taxa ilustrativa, editável", detalhe={"taxa": taxa}))
 
